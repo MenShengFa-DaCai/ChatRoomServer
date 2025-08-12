@@ -89,9 +89,14 @@ bool Server::userLogin(const QString& user, const QString& passport) {
             ui->textBrowser->append("找到该用户，验证密码中……");
             const QString dbPassport = checkQuery.value(1).toString(); // 获取第2列
             if (dbPassport == passport) {
-                //这里验证一下，该用户是否已经在线，在线则拒绝登入
+                // 检查用户是否在线
+                if (onlineUsers.contains(user)) {
+                    ui->textBrowser->append("用户已在线，拒绝登陆");
+                    return false;
+                }
                 ui->textBrowser->append("登陆成功");
-                //用户未在线，加入在线名单
+                // 添加用户到在线列表
+                onlineUsers.insert(user);
                 return true;
             }
             ui->textBrowser->append("密码错误");
@@ -101,7 +106,7 @@ bool Server::userLogin(const QString& user, const QString& passport) {
         ui->textBrowser->append("用户不存在");
         return false;
     }
-    ui->textBrowser->append("异常，语句执行失败 在server.cpp 83行左右");
+    ui->textBrowser->append("异常，语句执行失败 在server.cpp 109行左右");
     return false;
 }
 
@@ -185,13 +190,18 @@ void Server::readData() {
     QStringList order=str.split(" ");
     if (order.size()>=3) {
         if (order[0]=="LOGIN") {
-            //在此处理登陆逻辑
+            // 在此处理登陆逻辑
             bool ok=userLogin(order[1], order[2]);
-            //把登陆成功或者失败的信息发回客户端
+
+            // 把登陆成功或者失败的信息发回客户端
             out << (ok ? "LOGIN SUCCESS" : "LOGIN FAILED");
             out.flush();
-            const QString suc=ok?"成功":"失败";
-            ui->textBrowser->append("登陆信息发回客户端，登陆 "+suc);
+
+            if (ok) {
+                // 登录成功则记录用户映射
+                clientUserMap[clientSocket] = order[1];
+                ui->textBrowser->append("用户 " + order[1] + " 登录成功");
+            }
             //成功发回信息后应该断开连接，注意客户端收到消息才断开链接
         }else if (order[0]=="REGISTER") {
             //在此处理注册逻辑
@@ -251,6 +261,13 @@ void Server::readData() {
 void Server::clientDisconnected() {
     auto *clientSocket = qobject_cast<QTcpSocket*>(sender());
     if (clientSocket) {
+        // 从在线用户列表中移除
+        if (clientUserMap.contains(clientSocket)) {
+            QString user = clientUserMap[clientSocket];
+            onlineUsers.remove(user);
+            clientUserMap.remove(clientSocket);
+            ui->textBrowser->append("用户 " + user + " 已下线");
+        }
         clients.removeAll(clientSocket);
         clientSocket->deleteLater();
         ui->textBrowser->append("客户端断开连接");

@@ -8,6 +8,7 @@
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
 #include <QDateTime>
+#include <QSet>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Server; }
@@ -35,7 +36,9 @@ private:
     //把聊天记录存到数据库
     void reco(const QString& time, const QString& sender,const QString& msg);
     // 存储在线用户
-    QList<QString> onlineUsers;
+    QSet<QString> onlineUsers;
+    // 存储socket与用户的映射
+    QMap<QTcpSocket*, QString> clientUserMap;
 private slots:
     // 处理新连接
     void handleNewConnection();
