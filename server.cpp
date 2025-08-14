@@ -71,7 +71,7 @@ Server::~Server() {
     delete ui;
 }
 
-
+//登陆处理函数
 bool Server::userLogin(const QString& user, const QString& passport) {
     ui->textBrowser->append("正在试图登陆"+user+"密码："+passport);
     //查数据库看有无该用户
@@ -244,12 +244,31 @@ void Server::readData() {
                         ui->textBrowser->append("消息格式错误: " + str);
                     }
                 }
-            }else {
-                if (order[0]=="HISTORY") {
-
-                }else if (order[0]=="FIND") {
-
+            }
+        }
+    }else if (order.size()==1) {
+        //这里是有关聊天记录的功能
+        if (order[0]=="HISTORY") {
+            //查聊天记录数据库，然后遍历并发送给查询者客户端
+            QSqlQuery checkQuery;
+            QString sql="SELECT * FROM RECO;";
+            if(checkQuery.exec(sql)) {
+                int count = 0;
+                while (checkQuery.next()) {
+                    QString time = checkQuery.value(0).toString();
+                    QString user = checkQuery.value(1).toString();
+                    QString content = checkQuery.value(2).toString();
+                    // 使用明确的格式，确保有换行符
+                    QString message = QString("%1 %2: %3\n").arg(time, user, content);
+                    // 直接写入套接字，避免QTextStream缓冲
+                    clientSocket->write(message.toUtf8());
+                    clientSocket->flush(); // 立即发送
+                    count++;
                 }
+                QString xx=QString::number(count)+"条历史记录";
+                ui->textBrowser->append("已发送"+xx);
+            }else {
+                ui->textBrowser->append("error 查聊天记录");
             }
         }
     }else {
