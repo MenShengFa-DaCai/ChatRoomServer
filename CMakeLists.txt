@@ -23,6 +23,7 @@ add_executable(ChatRoomServer main.cpp
         server.ui
         ${RESOURCE_FILES})
 
+
 target_link_libraries(ChatRoomServer
         Qt::Core
         Qt::Gui
@@ -72,33 +73,75 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             COMMAND ${CMAKE_COMMAND} -E copy
             "$<TARGET_FILE:${PROJECT_NAME}>"
             "${RUNTIME_OUTPUT_DIRECTORY}")
+
+    # 添加 MinGW 运行时库
+    get_filename_component(MINGW_BIN_PATH ${CMAKE_CXX_COMPILER} DIRECTORY)
+    set(MINGW_RUNTIME_LIBS
+            "${MINGW_BIN_PATH}/libgcc_s_seh-1.dll"
+            "${MINGW_BIN_PATH}/libstdc++-6.dll"
+            "${MINGW_BIN_PATH}/libwinpthread-1.dll"
+    )
+    foreach(MINGW_LIB IN LISTS MINGW_RUNTIME_LIBS)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${MINGW_LIB}"
+                "${RUNTIME_OUTPUT_DIRECTORY}")  # 复制到 runtime 目录
+    endforeach()
+
+    # 添加 ICU 库
+    file(GLOB ICU_DLLS "${QT_INSTALL_PATH}/bin/icu*.dll")
+    foreach(ICU_DLL IN LISTS ICU_DLLS)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${ICU_DLL}"
+                "${RUNTIME_OUTPUT_DIRECTORY}")  # 复制到 runtime 目录
+    endforeach()
+
+    # 添加 OpenSSL 库
+    set(OPENSSL_LIBS
+            "libcrypto-3-x64.dll"
+            "libssl-3-x64.dll"
+    )
+    foreach(SSL_LIB IN LISTS OPENSSL_LIBS)
+        if (EXISTS "${QT_INSTALL_PATH}/bin/${SSL_LIB}")
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    "${QT_INSTALL_PATH}/bin/${SSL_LIB}"
+                    "${RUNTIME_OUTPUT_DIRECTORY}")  # 复制到 runtime 目录
+        endif()
+    endforeach()
 endif ()
 
 # ========== 安装规则 ==========
 # 1. 安装可执行文件
-install(FILES "${RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}.exe"
+install(FILES "${RUNTIME_OUTPUT_DIRECTORY}/ChatRoomServer.exe"
         DESTINATION .
-        RENAME "${PROJECT_NAME}.exe"
+        RENAME "ChatRoomServer.exe"
 )
 
-# 2. 安装 Qt 平台插件
+# 2. 安装所有运行时 DLL（从 runtime 目录）
+file(GLOB RUNTIME_DLLS "${RUNTIME_OUTPUT_DIRECTORY}/*.dll")
+install(FILES ${RUNTIME_DLLS}
+        DESTINATION .
+)
+
+# 3. 安装 Qt 平台插件
 install(DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/plugins/platforms/"
         DESTINATION ./plugins/platforms
         FILES_MATCHING PATTERN "*.dll"
 )
 
-# 3. 安装 Qt 数据库插件
+# 4. 安装 Qt 数据库插件
 install(DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/plugins/sqldrivers/"
         DESTINATION ./plugins/sqldrivers
         FILES_MATCHING PATTERN "*.dll"
 )
 
-# 4. 安装 Qt 核心 DLL
-file(GLOB QT_DLLS "${RUNTIME_OUTPUT_DIRECTORY}/Qt6*.dll")
-install(FILES ${QT_DLLS}
+# 5. 安装数据库文件
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/Users.db"
         DESTINATION .
+        OPTIONAL
 )
-
 # ========== CPACK 打包配置 ==========
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)  # 防止创建额外的顶层目录
 set(CPACK_PACKAGE_NAME "ChatRoomServer")
