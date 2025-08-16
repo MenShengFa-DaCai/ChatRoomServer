@@ -6,6 +6,7 @@ Server::Server(QWidget *parent) :
     QWidget(parent), ui(new Ui::Server) {
     ui->setupUi(this);
 
+    this->setWindowIcon(QIcon(":/icon/install.ico"));
     //拉起数据库
     db=QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("Users.db");

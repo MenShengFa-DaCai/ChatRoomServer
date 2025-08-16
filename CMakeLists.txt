@@ -7,7 +7,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_PREFIX_PATH "C:/Qt/Qt6/6.9.1/mingw_64")
-set(RESOURCES icon/icon.qrc)  # 添加资源文件
+
 find_package(Qt6 COMPONENTS
         Core
         Gui
@@ -16,11 +16,15 @@ find_package(Qt6 COMPONENTS
         Sql
         REQUIRED)
 
+qt_add_resources(RESOURCE_FILES
+        icon/icon.qrc)
+
 add_executable(ChatRoomServer main.cpp
         server.cpp
         server.h
         server.ui
-        ${RESOURCES})
+        ${RESOURCE_FILES})
+
 target_link_libraries(ChatRoomServer
         Qt::Core
         Qt::Gui
@@ -65,71 +69,3 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             "${QT_INSTALL_PATH}/plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/sqldrivers/")
 endif ()
-
-# 设置安装规则
-install(TARGETS ChatRoomServer
-        RUNTIME DESTINATION bin
-        BUNDLE DESTINATION .
-)
-
-# 安装 Qt 运行时组件
-if(WIN32)
-    # 安装主程序依赖的 DLL
-    install(FILES
-            "${QT_INSTALL_PATH}/bin/Qt6Core.dll"
-            "${QT_INSTALL_PATH}/bin/Qt6Gui.dll"
-            "${QT_INSTALL_PATH}/bin/Qt6Widgets.dll"
-            "${QT_INSTALL_PATH}/bin/Qt6Network.dll"
-            "${QT_INSTALL_PATH}/bin/Qt6Sql.dll"
-            DESTINATION bin
-    )
-
-    # 安装插件
-    install(FILES
-            "${QT_INSTALL_PATH}/plugins/platforms/qwindows.dll"
-            DESTINATION bin/platforms
-    )
-
-    install(FILES
-            "${QT_INSTALL_PATH}/plugins/sqldrivers/qsqlite.dll"
-            DESTINATION bin/sqldrivers
-    )
-
-    # 安装图标资源
-    install(FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/icon/install.ico"
-            "${CMAKE_CURRENT_SOURCE_DIR}/icon/uninstall.ico"
-            DESTINATION bin/icon
-    )
-endif()
-
-# 配置 CPack
-include(CPack)
-set(CPACK_GENERATOR "NSIS")
-set(CPACK_PACKAGE_NAME "ChatRoomServer")
-set(CPACK_PACKAGE_VENDOR "YourCompany")
-set(CPACK_PACKAGE_VERSION "1.0.0")
-set(CPACK_PACKAGE_EXECUTABLES "ChatRoomServer" "Chat Room Server")
-set(CPACK_CREATE_DESKTOP_LINKS "ChatRoomServer")
-set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-set(CPACK_NSIS_MODIFY_PATH OFF)
-
-# 设置安装包图标
-set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icon/install.ico")
-set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icon/uninstall.ico")
-
-# 设置开始菜单名称
-set(CPACK_NSIS_PACKAGE_NAME "Chat Room Server")
-set(CPACK_NSIS_DISPLAY_NAME "Chat Room Server")
-set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\ChatRoomServer.exe")
-
-# 添加快捷方式图标设置
-set(CPACK_NSIS_CREATE_ICONS_EXTRA "
-    CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Chat Room Server.lnk' '$INSTDIR\\\\bin\\\\ChatRoomServer.exe' '' '$INSTDIR\\\\bin\\\\icon\\\\install.ico'
-    CreateShortCut '$DESKTOP\\\\Chat Room Server.lnk' '$INSTDIR\\\\bin\\\\ChatRoomServer.exe' '' '$INSTDIR\\\\bin\\\\icon\\\\install.ico'
-")
-
-set(CPACK_NSIS_DELETE_ICONS_EXTRA "
-    Delete '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Chat Room Server.lnk'
-    Delete '$DESKTOP\\\\Chat Room Server.lnk'
-")
