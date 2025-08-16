@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="icon">
+    <file>install.ico</file>
+    <file>uninstall.ico</file>
+  </qresource>
+</RCC>
