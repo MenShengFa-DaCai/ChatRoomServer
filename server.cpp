@@ -1,6 +1,7 @@
 #include "server.h"
 #include "ui_Server.h"
-
+#include <QCoreApplication>  // 添加头文件
+#include <QDir>              // 添加头文件
 
 Server::Server(QWidget *parent) :
     QWidget(parent), ui(new Ui::Server) {
@@ -8,8 +9,9 @@ Server::Server(QWidget *parent) :
 
     this->setWindowIcon(QIcon(":/icon/install.ico"));
     //拉起数据库
+    QString dbPath = QCoreApplication::applicationDirPath() + "/Users.db";
     db=QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("Users.db");
+    db.setDatabaseName(dbPath);
     if(db.open()) {
         ui->textBrowser->append("数据库已经拉起");
     }
