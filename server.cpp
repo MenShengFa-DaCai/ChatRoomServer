@@ -272,6 +272,7 @@ void Server::readData() {
             }
         }
     }else {
+        //此处可以加其他功能，只需匹配客户端的指令码即可。
         ui->textBrowser->append("未知错误：位置 server.cpp 250行左右");
     }
 }
