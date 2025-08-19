@@ -47,6 +47,4 @@ private slots:
     // 处理客户端断开连接,注册或者登陆完成后断开连接，然后链接新聊天链接
     void clientDisconnected();
 };
-
-
 #endif //SERVER_H

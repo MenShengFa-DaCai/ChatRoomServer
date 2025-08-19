@@ -7,7 +7,7 @@
 #include "server.h"
 
 int main(int argc, char* argv[]) {
-
+    //打包要求锁定插件，防止找不到程序入口
     QApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/plugins");
     QApplication a(argc, argv);
     QApplication::setWindowIcon(QIcon(":/icon/install.ico"));

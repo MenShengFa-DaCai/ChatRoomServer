@@ -195,7 +195,6 @@ void Server::readData() {
         if (order[0]=="LOGIN") {
             // 在此处理登陆逻辑
             bool ok=userLogin(order[1], order[2]);
-
             // 把登陆成功或者失败的信息发回客户端
             out << (ok ? "LOGIN SUCCESS" : "LOGIN FAILED");
             out.flush();
